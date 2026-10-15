@@ -166,7 +166,38 @@ function Pipeline:apply(code, filename)
 	else
 		--> use secure random number generator
 		local success, seed = pcall(function()
-			local seedStr =  io.popen("openssl rand -hex 12"):read("*a"):gsub("\n", "")..""
+			local seedStr
+
+			local handle = io.popen("openssl rand -hex 16")
+			if handle then
+				local out = handle:read("*a")
+				handle:close()
+				if out then
+					out = out:gsub("%s+", "")
+					if #out >= 32 then
+						seedStr = out
+					end
+				end
+			end
+
+			if not seedStr then
+				local urandom = io.open("/dev/urandom", "rb")
+				if urandom then
+					local bytes = urandom:read(16)
+					urandom:close()
+					if bytes and #bytes == 16 then
+						seedStr = ""
+						for i = 1, #bytes do
+							seedStr = seedStr .. string.format("%02x", bytes:byte(i))
+						end
+					end
+				end
+			end
+
+			if not seedStr then
+				error("secure random source unavailable")
+			end
+
 			local seedNum = 0;
 
 			--> NOTE: tonumber caps at 1.844674407371e+19. So we use this instead.
@@ -187,8 +218,8 @@ function Pipeline:apply(code, filename)
 		if success then
 			math.randomseed(seed)
 		else
-			logger:warn("OpenSSL is unavailable. Falling back to unix time.");
-			math.randomseed(os.time())
+			logger:warn("Secure random source unavailable. Falling back to unix time.");
+			math.randomseed(os.time() + math.floor(os.clock() * 1000000))
 		end
 	end
 

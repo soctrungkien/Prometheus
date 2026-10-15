@@ -56,7 +56,11 @@ type SharePayload = {
 type LastObfuscation = Omit<SharePayload, "version">
 
 function createSeed() {
-  return Math.floor(crypto.getRandomValues(new Uint32Array(1))[0] % 2147483646) + 1
+  const values = new Uint32Array(2)
+  crypto.getRandomValues(values)
+  // Use the full 53-bit safe integer range supported by Lua/Prometheus seeds.
+  const seed = ((values[0] & 0x1fffff) * 0x100000000 + values[1]) % 9007199254740991 + 1
+  return seed
 }
 
 function downloadLua(output: string) {

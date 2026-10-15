@@ -24,9 +24,9 @@ function EncryptStrings:init(_) end
 function EncryptStrings:CreateEncryptionService()
 	local usedSeeds = {};
 
-	local secret_key_6 = math.random(0, 63) -- 6-bit  arbitrary integer (0..63)
+	local secret_key_6 = math.random(0, 255) -- 8-bit  arbitrary integer (0..255)
 	local secret_key_7 = math.random(0, 127) -- 7-bit  arbitrary integer (0..127)
-	local secret_key_44 = math.random(0, 17592186044415) -- 44-bit arbitrary integer (0..17592186044415)
+	local secret_key_44 = math.random(0, 4503599627370495) -- 52-bit arbitrary integer (0..4503599627370495)
 	local secret_key_8 = math.random(0, 255); -- 8-bit  arbitrary integer (0..255)
 
 	local floor = math.floor
@@ -48,7 +48,7 @@ function EncryptStrings:CreateEncryptionService()
 
 	local prev_values = {}
 	local function set_seed(seed_53)
-		state_45 = seed_53 % 35184372088832
+		state_45 = seed_53 % 9007199254740992
 		state_8 = seed_53 % 255 + 2
 		prev_values = {}
 	end
@@ -56,14 +56,14 @@ function EncryptStrings:CreateEncryptionService()
 	local function gen_seed()
 		local seed;
 		repeat
-			seed = math.random(0, 35184372088832);
+			seed = math.random(0, 9007199254740991);
 		until not usedSeeds[seed];
 		usedSeeds[seed] = true;
 		return seed;
 	end
 
 	local function get_random_32()
-		state_45 = (state_45 * param_mul_45 + param_add_45) % 35184372088832
+		state_45 = (state_45 * param_mul_45 + param_add_45) % 9007199254740992
 		repeat
 			state_8 = state_8 * param_mul_8 % 257
 		until state_8 ~= 1
@@ -127,7 +127,7 @@ do
 	local prev_values = {}
 	local function get_next_pseudo_random_byte()
 		if #prev_values == 0 then
-			state_45 = (state_45 * ]] .. tostring(param_mul_45) .. [[ + ]] .. tostring(param_add_45) .. [[) % 35184372088832
+			state_45 = (state_45 * ]] .. tostring(param_mul_45) .. [[ + ]] .. tostring(param_add_45) .. [[) % 9007199254740992
 			repeat
 				state_8 = state_8 * ]] .. tostring(param_mul_8) .. [[ % 257
 			until state_8 ~= 1
@@ -157,7 +157,7 @@ do
 		if(realStringsLocal[seed]) then return seed; else
 			prev_values = {};
 			local chars = charmap;
-			state_45 = seed % 35184372088832
+			state_45 = seed % 9007199254740992
 			state_8 = seed % 255 + 2
 			local len = #str;
 			realStringsLocal[seed] = "";
